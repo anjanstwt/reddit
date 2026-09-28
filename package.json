@@ -2,12 +2,37 @@
   "name": "@reddit/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev": "npx nx run-many -t dev serve -p web,server"
+  },
   "private": true,
-  "dependencies": {},
   "devDependencies": {
+    "@nx-go/nx-go": "^4.1.1",
+    "@nx/devkit": "23.2.1",
     "@nx/js": "23.2.1",
+    "@nx/next": "^23.2.1",
+    "@nx/playwright": "23.2.1",
     "@nx/workspace": "23.2.1",
-    "nx": "23.2.1"
+    "@playwright/test": "^1.37.0",
+    "@swc-node/register": "~1.11.1",
+    "@swc/cli": "~0.8.1",
+    "@swc/core": "~1.15.5",
+    "@swc/helpers": "~0.5.18",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "nx": "23.2.1",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "tslib": "^2.3.0",
+    "typescript": "~6.0.3"
+  },
+  "dependencies": {
+    "next": "~16.3.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "overrides": {
+    "smol-toml": "^1.9.0"
   }
 }
