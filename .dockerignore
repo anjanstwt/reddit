@@ -1,0 +1,15 @@
+.git
+node_modules
+**/node_modules
+**/.next
+.nx
+dist
+tmp
+coverage
+.env
+.env.*
+!.env.example
+.claude
+.github
+apps/server
+apps/web-e2e

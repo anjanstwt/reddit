@@ -7,8 +7,8 @@ loadEnvConfig(path.join(__dirname, '../..'));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js options go here
-  // See: https://nextjs.org/docs/app/api-reference/config/next-config-js
+  // Self-contained server bundle for the Docker image.
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
