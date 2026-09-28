@@ -1,29 +1,55 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Env    string
-	Port   string
-	WebURL string
+	Env              string
+	Port             string
+	WebURL           string
+	DatabaseURL      string
+	JWTSecret        string
+	JWTRefreshSecret string
+	GoogleClientID   string
 }
 
 func (c Config) IsProduction() bool {
 	return c.Env == "production"
 }
 
-func Load() Config {
+func Load() (Config, error) {
 	_ = godotenv.Load("../../.env")
 
-	return Config{
-		Env:    getEnv("SERVER_ENV", "development"),
-		Port:   getEnv("SERVER_PORT", "8080"),
-		WebURL: getEnv("SERVER_WEB_URL", "http://localhost:3000"),
+	cfg := Config{
+		Env:              getEnv("SERVER_ENV", "development"),
+		Port:             getEnv("SERVER_PORT", "8080"),
+		WebURL:           getEnv("SERVER_WEB_URL", "http://localhost:3000"),
+		DatabaseURL:      os.Getenv("DATABASE_URL"),
+		JWTSecret:        os.Getenv("SERVER_JWT_SECRET"),
+		JWTRefreshSecret: os.Getenv("SERVER_JWT_REFRESH_SECRET"),
+		GoogleClientID:   os.Getenv("GOOGLE_CLIENT_ID"),
 	}
+
+	required := map[string]string{
+		"DATABASE_URL":              cfg.DatabaseURL,
+		"SERVER_JWT_SECRET":         cfg.JWTSecret,
+		"SERVER_JWT_REFRESH_SECRET": cfg.JWTRefreshSecret,
+		"GOOGLE_CLIENT_ID":          cfg.GoogleClientID,
+	}
+	for key, val := range required {
+		if val == "" {
+			return Config{}, fmt.Errorf("missing required env var %s", key)
+		}
+	}
+	if len(cfg.JWTSecret) < 32 || len(cfg.JWTRefreshSecret) < 32 {
+		return Config{}, fmt.Errorf("JWT secrets must be at least 32 characters")
+	}
+
+	return cfg, nil
 }
 
 func getEnv(key, fallback string) string {

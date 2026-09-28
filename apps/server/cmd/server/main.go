@@ -11,15 +11,30 @@ import (
 	"time"
 
 	"reddit/server/internal/config"
+	"reddit/server/internal/database"
+	"reddit/server/internal/handlers"
 	"reddit/server/internal/router"
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := database.Connect(cfg.DatabaseURL, !cfg.IsProduction())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := database.Migrate(db); err != nil {
+		log.Fatalf("migrate: %v", err)
+	}
+
+	h := handlers.New(db, cfg)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(cfg),
+		Handler:           router.New(cfg, h),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
@@ -39,5 +54,9 @@ func main() {
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Printf("Shutdown error: %v", err)
+	}
+
+	if sqlDB, err := db.DB(); err == nil {
+		sqlDB.Close()
 	}
 }

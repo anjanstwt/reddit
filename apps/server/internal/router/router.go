@@ -9,10 +9,11 @@ import (
 
 	"reddit/server/internal/config"
 	"reddit/server/internal/handlers"
+	"reddit/server/internal/middleware"
 	"reddit/server/internal/response"
 )
 
-func New(cfg config.Config) *gin.Engine {
+func New(cfg config.Config, h *handlers.Handler) *gin.Engine {
 	if cfg.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -27,7 +28,15 @@ func New(cfg config.Config) *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	r.GET("/health", handlers.Health)
+	r.GET("/health", h.Health)
+
+	v1 := r.Group("/api/v1")
+	{
+		authGroup := v1.Group("/auth")
+		authGroup.POST("/google", h.GoogleSignIn)
+		authGroup.POST("/refresh", h.Refresh)
+		authGroup.GET("/me", middleware.RequireAuth(cfg.JWTSecret), h.Me)
+	}
 
 	r.NoRoute(func(c *gin.Context) {
 		response.Error(c, "NOT_FOUND", "Route not found", http.StatusNotFound)
