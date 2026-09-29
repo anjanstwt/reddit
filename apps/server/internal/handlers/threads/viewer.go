@@ -2,20 +2,10 @@ package threads
 
 import "reddit/server/internal/models"
 
-func (h *Handler) attachViewerState(userID string, roots ...*threadResponse) error {
-	if userID == "" || len(roots) == 0 {
+func (h *Handler) attachViewerState(userID string, byID map[string]*threadResponse) error {
+	if userID == "" || len(byID) == 0 {
 		return nil
 	}
-
-	byID := map[string]*threadResponse{}
-	var walk func(nodes []*threadResponse)
-	walk = func(nodes []*threadResponse) {
-		for _, n := range nodes {
-			byID[n.ID] = n
-			walk(n.Replies)
-		}
-	}
-	walk(roots)
 
 	ids := make([]string, 0, len(byID))
 	for id := range byID {

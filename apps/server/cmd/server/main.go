@@ -12,6 +12,7 @@ import (
 
 	"reddit/server/internal/config"
 	"reddit/server/internal/database"
+	"reddit/server/internal/jobs"
 	"reddit/server/internal/router"
 	"reddit/server/internal/storage"
 )
@@ -37,6 +38,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	jobsCtx, stopJobs := context.WithCancel(context.Background())
+	defer stopJobs()
+	go jobs.RunMediaCleanup(jobsCtx, db, store)
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           router.New(cfg, db, store),
@@ -54,6 +59,7 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	sig := <-quit
 	log.Printf("%s received. Starting graceful shutdown...", sig)
+	stopJobs()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

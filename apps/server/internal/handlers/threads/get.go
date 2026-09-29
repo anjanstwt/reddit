@@ -23,7 +23,7 @@ func (h *Handler) GetThread(c *gin.Context) {
 		return
 	}
 	res := toThreadResponse(thread)
-	if err := h.attachViewerState(c.GetString(middleware.UserIDKey), res); err != nil {
+	if err := h.decorate(c.GetString(middleware.UserIDKey), res); err != nil {
 		response.SystemError(c)
 		return
 	}
@@ -54,7 +54,7 @@ func (h *Handler) ListComments(c *gin.Context) {
 	}
 
 	tree := buildTree(comments)
-	if err := h.attachViewerState(c.GetString(middleware.UserIDKey), tree...); err != nil {
+	if err := h.decorate(c.GetString(middleware.UserIDKey), tree...); err != nil {
 		response.SystemError(c)
 		return
 	}

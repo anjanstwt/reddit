@@ -8,6 +8,7 @@ import (
 
 	"reddit/server/internal/middleware"
 	"reddit/server/internal/models"
+	"reddit/server/internal/pagination"
 	"reddit/server/internal/response"
 )
 
@@ -49,7 +50,7 @@ func (h *Handler) Unsave(c *gin.Context) {
 
 // controller for fetching saved threads
 func (h *Handler) ListSaved(c *gin.Context) {
-	limit, offset, ok := pagination(c)
+	limit, offset, ok := pagination.Parse(c)
 	if !ok {
 		return
 	}
@@ -69,7 +70,7 @@ func (h *Handler) ListSaved(c *gin.Context) {
 	for i := range saved {
 		res[i] = toThreadResponse(saved[i].Thread)
 	}
-	if err := h.attachViewerState(me, res...); err != nil {
+	if err := h.decorate(me, res...); err != nil {
 		response.SystemError(c)
 		return
 	}

@@ -9,6 +9,7 @@ import (
 
 	"reddit/server/internal/middleware"
 	"reddit/server/internal/models"
+	"reddit/server/internal/pagination"
 	"reddit/server/internal/response"
 )
 
@@ -74,4 +75,42 @@ func (h *Handler) adjustFollowCounts(tx *gorm.DB, followerID, followeeID string,
 	}
 	return tx.Model(&models.User{}).Where("id = ?", followeeID).
 		UpdateColumn("follower_count", gorm.Expr("follower_count + ?", delta)).Error
+}
+
+// controller for fetching a user's followers
+func (h *Handler) ListFollowers(c *gin.Context) {
+	h.listFollows(c, "followee_id", "follower_id")
+}
+
+// controller for fetching who a user follows
+func (h *Handler) ListFollowing(c *gin.Context) {
+	h.listFollows(c, "follower_id", "followee_id")
+}
+
+func (h *Handler) listFollows(c *gin.Context, matchColumn, userColumn string) {
+	user, ok := h.findUserByUsername(c)
+	if !ok {
+		return
+	}
+	limit, offset, ok := pagination.Parse(c)
+	if !ok {
+		return
+	}
+
+	var users []models.User
+	err := h.DB.Joins("JOIN follows ON follows."+userColumn+" = users.id").
+		Where("follows."+matchColumn+" = ?", user.ID).
+		Order("follows.created_at DESC").Limit(limit).Offset(offset).
+		Find(&users).Error
+	if err != nil {
+		response.SystemError(c)
+		return
+	}
+
+	profiles, err := h.toProfiles(users)
+	if err != nil {
+		response.SystemError(c)
+		return
+	}
+	response.Success(c, profiles, "Users fetched successfully", http.StatusOK)
 }

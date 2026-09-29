@@ -78,7 +78,7 @@ func (h *Handler) CreateCommunity(c *gin.Context) {
 	}
 
 	owner := models.RoleOwner
-	response.Success(c, communityResponse{Community: &community, ViewerRole: &owner}, "Community created", http.StatusCreated)
+	response.Success(c, h.toCommunityResponse(&community, &owner), "Community created", http.StatusCreated)
 }
 
 // validTitle trims and checks a title. On failure it writes the response and returns ok = false.

@@ -2,18 +2,13 @@ package threads
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 
 	"reddit/server/internal/middleware"
 	"reddit/server/internal/models"
+	"reddit/server/internal/pagination"
 	"reddit/server/internal/response"
-)
-
-const (
-	defaultPageSize = 25
-	maxPageSize     = 100
 )
 
 var postOrders = map[string]string{
@@ -33,7 +28,7 @@ func (h *Handler) ListCommunityPosts(c *gin.Context) {
 		response.Error(c, "INVALID_SORT", "sort must be new or top", http.StatusBadRequest)
 		return
 	}
-	limit, offset, ok := pagination(c)
+	limit, offset, ok := pagination.Parse(c)
 	if !ok {
 		return
 	}
@@ -53,23 +48,9 @@ func (h *Handler) ListCommunityPosts(c *gin.Context) {
 		posts[i].Community = community
 		res[i] = toThreadResponse(&posts[i])
 	}
-	if err := h.attachViewerState(c.GetString(middleware.UserIDKey), res...); err != nil {
+	if err := h.decorate(c.GetString(middleware.UserIDKey), res...); err != nil {
 		response.SystemError(c)
 		return
 	}
 	response.Success(c, res, "Posts fetched successfully", http.StatusOK)
-}
-
-func pagination(c *gin.Context) (limit, offset int, ok bool) {
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(defaultPageSize)))
-	if err != nil || limit < 1 || limit > maxPageSize {
-		response.Error(c, "INVALID_LIMIT", "limit must be 1-100", http.StatusBadRequest)
-		return 0, 0, false
-	}
-	offset, err = strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil || offset < 0 {
-		response.Error(c, "INVALID_OFFSET", "offset must be 0 or more", http.StatusBadRequest)
-		return 0, 0, false
-	}
-	return limit, offset, true
 }

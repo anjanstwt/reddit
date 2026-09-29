@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
+	"reddit/server/internal/mediaref"
 	"reddit/server/internal/middleware"
 	"reddit/server/internal/models"
 	"reddit/server/internal/response"
@@ -26,9 +27,10 @@ const (
 // controller for updating user details
 func (h *Handler) UpdateMe(c *gin.Context) {
 	var body struct {
-		Username *string `json:"username"`
-		Name     *string `json:"name"`
-		Bio      *string `json:"bio"`
+		Username      *string `json:"username"`
+		Name          *string `json:"name"`
+		Bio           *string `json:"bio"`
+		AvatarMediaID *string `json:"avatarMediaId"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.Error(c, "BAD_REQUEST", "Invalid request body", http.StatusBadRequest)
@@ -74,6 +76,17 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 		updates["bio"] = bio
 	}
 
+	if body.AvatarMediaID != nil {
+		if *body.AvatarMediaID == "" {
+			updates["avatar_media_id"] = nil
+		} else {
+			if !h.usableImage(c, user.ID, *body.AvatarMediaID) {
+				return
+			}
+			updates["avatar_media_id"] = *body.AvatarMediaID
+		}
+	}
+
 	if len(updates) == 0 {
 		response.Error(c, "BAD_REQUEST", "Nothing to update", http.StatusBadRequest)
 		return
@@ -93,5 +106,18 @@ func (h *Handler) UpdateMe(c *gin.Context) {
 		response.SystemError(c)
 		return
 	}
-	response.Success(c, user, "Profile updated", http.StatusOK)
+	h.respondWithMe(c, &user, "Profile updated")
+}
+
+func (h *Handler) usableImage(c *gin.Context, ownerID, mediaID string) bool {
+	media, err := mediaref.LoadUsable(h.DB, ownerID, []string{mediaID})
+	if errors.Is(err, mediaref.ErrUnusable) || (err == nil && media[mediaID].Kind != models.MediaImage) {
+		response.Error(c, "INVALID_MEDIA", "Avatar must be one of your completed image uploads", http.StatusBadRequest)
+		return false
+	}
+	if err != nil {
+		response.SystemError(c)
+		return false
+	}
+	return true
 }

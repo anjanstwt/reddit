@@ -10,6 +10,7 @@ import (
 	"reddit/server/internal/middleware"
 	"reddit/server/internal/models"
 	"reddit/server/internal/response"
+	"reddit/server/internal/tiptap"
 )
 
 // controller for creating a post in a community
@@ -35,14 +36,19 @@ func (h *Handler) CreatePost(c *gin.Context) {
 	if !ok {
 		return
 	}
+	me := c.GetString(middleware.UserIDKey)
+	refs, ok := h.validRefs(c, content, me)
+	if !ok {
+		return
+	}
 
 	post := models.Thread{
 		CommunityID: community.ID,
-		AuthorID:    c.GetString(middleware.UserIDKey),
+		AuthorID:    me,
 		Title:       &title,
 		Body:        content,
 	}
-	if err := h.DB.Create(&post).Error; err != nil {
+	if err := h.createWithRefs(&post, refs, nil); err != nil {
 		response.SystemError(c)
 		return
 	}
@@ -90,20 +96,22 @@ func (h *Handler) CreateReply(c *gin.Context) {
 	if !ok {
 		return
 	}
+	me := c.GetString(middleware.UserIDKey)
+	refs, ok := h.validRefs(c, content, me)
+	if !ok {
+		return
+	}
 
 	reply := models.Thread{
 		CommunityID: parent.CommunityID,
-		AuthorID:    c.GetString(middleware.UserIDKey),
+		AuthorID:    me,
 		ParentID:    &parent.ID,
 		RootID:      &root.ID,
 		Depth:       parent.Depth + 1,
 		Body:        content,
 	}
 
-	err := h.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&reply).Error; err != nil {
-			return err
-		}
+	err := h.createWithRefs(&reply, refs, func(tx *gorm.DB) error {
 		if err := incrementColumn(tx, parent.ID, "reply_count"); err != nil {
 			return err
 		}
@@ -117,6 +125,21 @@ func (h *Handler) CreateReply(c *gin.Context) {
 	h.respondWithThread(c, reply.ID, "Reply created", http.StatusCreated)
 }
 
+func (h *Handler) createWithRefs(thread *models.Thread, refs tiptap.Refs, extra func(tx *gorm.DB) error) error {
+	return h.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(thread).Error; err != nil {
+			return err
+		}
+		if err := syncRefs(tx, thread.ID, refs); err != nil {
+			return err
+		}
+		if extra != nil {
+			return extra(tx)
+		}
+		return nil
+	})
+}
+
 func incrementColumn(tx *gorm.DB, threadID, column string) error {
 	return tx.Model(&models.Thread{}).Where("id = ?", threadID).
 		UpdateColumn(column, gorm.Expr(column+" + 1")).Error
@@ -128,5 +151,10 @@ func (h *Handler) respondWithThread(c *gin.Context, id, message string, status i
 		response.SystemError(c)
 		return
 	}
-	response.Success(c, toThreadResponse(&thread), message, status)
+	res := toThreadResponse(&thread)
+	if err := h.decorate(c.GetString(middleware.UserIDKey), res); err != nil {
+		response.SystemError(c)
+		return
+	}
+	response.Success(c, res, message, status)
 }

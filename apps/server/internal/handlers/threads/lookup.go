@@ -32,6 +32,20 @@ func (h *Handler) findThread(c *gin.Context) (*models.Thread, bool) {
 	return &thread, true
 }
 
+func (h *Handler) findUser(c *gin.Context) (*models.User, bool) {
+	var user models.User
+	err := h.DB.First(&user, "username = ?", strings.ToLower(c.Param("username"))).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		response.Error(c, "NOT_FOUND", "User not found", http.StatusNotFound)
+		return nil, false
+	}
+	if err != nil {
+		response.SystemError(c)
+		return nil, false
+	}
+	return &user, true
+}
+
 func (h *Handler) findCommunity(c *gin.Context) (*models.Community, bool) {
 	var community models.Community
 	err := h.DB.First(&community, "name = ?", strings.ToLower(c.Param("name"))).Error

@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"time"
 
+	"reddit/server/internal/mediaref"
 	"reddit/server/internal/models"
 )
 
 type authorResponse struct {
-	ID       string  `json:"id"`
-	Username *string `json:"username"`
-	Name     string  `json:"name"`
-	Image    *string `json:"image"`
+	ID        string  `json:"id"`
+	Username  *string `json:"username"`
+	Name      string  `json:"name"`
+	AvatarURL *string `json:"avatarUrl"`
+
+	avatarMediaID *string
 }
 
 type communityRef struct {
@@ -20,27 +23,28 @@ type communityRef struct {
 }
 
 type threadResponse struct {
-	ID           string            `json:"id"`
-	Community    *communityRef     `json:"community,omitempty"`
-	Author       *authorResponse   `json:"author"`
-	ParentID     *string           `json:"parentId"`
-	RootID       *string           `json:"rootId"`
-	Depth        int               `json:"depth"`
-	Title        *string           `json:"title"`
-	Body         json.RawMessage   `json:"body"`
-	Pinned       bool              `json:"pinned"`
-	Locked       bool              `json:"locked"`
-	Score        int               `json:"score"`
-	Upvotes      int               `json:"upvotes"`
-	Downvotes    int               `json:"downvotes"`
-	ReplyCount   int               `json:"replyCount"`
-	CommentCount int               `json:"commentCount"`
-	EditedAt     *time.Time        `json:"editedAt"`
-	DeletedAt    *time.Time        `json:"deletedAt"`
-	CreatedAt    time.Time         `json:"createdAt"`
-	ViewerVote   int16             `json:"viewerVote"`
-	Saved        bool              `json:"saved"`
-	Replies      []*threadResponse `json:"replies,omitempty"`
+	ID           string                   `json:"id"`
+	Community    *communityRef            `json:"community,omitempty"`
+	Author       *authorResponse          `json:"author"`
+	ParentID     *string                  `json:"parentId"`
+	RootID       *string                  `json:"rootId"`
+	Depth        int                      `json:"depth"`
+	Title        *string                  `json:"title"`
+	Body         json.RawMessage          `json:"body"`
+	Pinned       bool                     `json:"pinned"`
+	Locked       bool                     `json:"locked"`
+	Score        int                      `json:"score"`
+	Upvotes      int                      `json:"upvotes"`
+	Downvotes    int                      `json:"downvotes"`
+	ReplyCount   int                      `json:"replyCount"`
+	CommentCount int                      `json:"commentCount"`
+	EditedAt     *time.Time               `json:"editedAt"`
+	DeletedAt    *time.Time               `json:"deletedAt"`
+	CreatedAt    time.Time                `json:"createdAt"`
+	ViewerVote   int16                    `json:"viewerVote"`
+	Saved        bool                     `json:"saved"`
+	Media        map[string]mediaref.Info `json:"media,omitempty"`
+	Replies      []*threadResponse        `json:"replies,omitempty"`
 }
 
 func toThreadResponse(t *models.Thread) *threadResponse {
@@ -72,10 +76,12 @@ func toThreadResponse(t *models.Thread) *threadResponse {
 	}
 	if t.Author != nil {
 		res.Author = &authorResponse{
-			ID:       t.Author.ID,
-			Username: t.Author.Username,
-			Name:     t.Author.Name,
-			Image:    t.Author.Image,
+			ID:        t.Author.ID,
+			Username:  t.Author.Username,
+			Name:      t.Author.Name,
+			AvatarURL: t.Author.Image,
+
+			avatarMediaID: t.Author.AvatarMediaID,
 		}
 	}
 	return res

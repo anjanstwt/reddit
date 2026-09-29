@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"reddit/server/internal/middleware"
 	"reddit/server/internal/response"
@@ -38,16 +40,26 @@ func (h *Handler) UpdateThread(c *gin.Context) {
 	if !ok {
 		return
 	}
+	refs, ok := h.validRefs(c, content, thread.AuthorID)
+	if !ok {
+		return
+	}
 
 	now := time.Now()
-	if err := h.DB.Model(thread).Updates(map[string]any{"body": content, "edited_at": now}).Error; err != nil {
+	err := h.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(thread).Omit(clause.Associations).Updates(map[string]any{"body": content, "edited_at": now}).Error; err != nil {
+			return err
+		}
+		return syncRefs(tx, thread.ID, refs)
+	})
+	if err != nil {
 		response.SystemError(c)
 		return
 	}
 	thread.Body, thread.EditedAt = content, &now
 
 	res := toThreadResponse(thread)
-	if err := h.attachViewerState(thread.AuthorID, res); err != nil {
+	if err := h.decorate(thread.AuthorID, res); err != nil {
 		response.SystemError(c)
 		return
 	}
