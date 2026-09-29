@@ -7,8 +7,13 @@ const API_URL =
 export interface ApiUser {
     id: string;
     email: string;
+    username: string | null;
     name: string;
     image: string | null;
+    avatarMediaId: string | null;
+    bio: string;
+    followerCount: number;
+    followingCount: number;
     createdAt: string;
     updatedAt: string;
 }

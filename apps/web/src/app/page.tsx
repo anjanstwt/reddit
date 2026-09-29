@@ -1,10 +1,13 @@
-import AuthButton from '@/components/auth-button';
+import Content from '@/components/base/Content';
+import RightSidebar from '@/components/base/RightSidebar';
+import PostSkeleton from '@/components/utility/PostSkeleton';
 
-export default function Index() {
+export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6">
-      <h1 className="text-4xl font-bold">Hello, reddit</h1>
-      <AuthButton />
-    </main>
+    <Content aside={<RightSidebar />}>
+      {Array.from({ length: 3 }, (_, i) => (
+        <PostSkeleton key={i} />
+      ))}
+    </Content>
   );
 }
