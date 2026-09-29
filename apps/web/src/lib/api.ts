@@ -1,6 +1,9 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/api/v1';
+const API_URL =
+    (typeof window === 'undefined' && process.env.API_INTERNAL_URL) ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:8080/api/v1';
 
-// Mirrors models.User on the Go server.
+// Mirrors models.User on the server.
 export interface ApiUser {
     id: string;
     email: string;
@@ -40,7 +43,7 @@ export class ApiError extends Error {
 
 type ApiOptions = RequestInit & { token?: string };
 
-// Calls the Go API and unwraps the response envelope. Throws ApiError on failure.
+// Calls the API and unwraps the response envelope. Throws ApiError on failure.
 export async function api<T>(path: string, { token, ...init }: ApiOptions = {}): Promise<T> {
     const headers = new Headers(init.headers);
     if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');

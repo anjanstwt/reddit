@@ -1,3 +1,9 @@
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '5'
+
 services:
   server:
     image: ${IMAGE_PREFIX}-server:${TAG:-latest}
@@ -5,12 +11,18 @@ services:
     env_file: .env
     environment:
       SERVER_ENV: production
+    # Only nginx on this host can reach it.
     ports:
-      - '8080:8080'
+      - '127.0.0.1:8080:8080'
+    logging: *logging
 
   web:
     image: ${IMAGE_PREFIX}-web:${TAG:-latest}
     restart: unless-stopped
     env_file: .env
+    environment:
+      # Server-side calls reach the API over the compose network.
+      API_INTERNAL_URL: http://server:8080/api/v1
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
+    logging: *logging
