@@ -21,6 +21,7 @@ type Config struct {
 	StorageSecretKey string
 	StorageBucket    string
 	StorageUseSSL    bool
+	StoragePublicURL string
 	MediaBaseURL     string
 }
 
@@ -45,6 +46,7 @@ func Load() (Config, error) {
 		StorageSecretKey: os.Getenv("SERVER_STORAGE_SECRET_KEY"),
 		StorageBucket:    getEnv("SERVER_STORAGE_BUCKET", "reddit-media"),
 		StorageUseSSL:    os.Getenv("SERVER_STORAGE_USE_SSL") == "true",
+		StoragePublicURL: os.Getenv("SERVER_STORAGE_PUBLIC_URL"),
 		MediaBaseURL:     getEnv("SERVER_MEDIA_BASE_URL", "http://localhost:9000/reddit-media"),
 	}
 

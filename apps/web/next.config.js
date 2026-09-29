@@ -5,7 +5,12 @@ const { loadEnvConfig } = require('@next/env');
 // Share the monorepo root .env with the Go server.
 loadEnvConfig(path.join(__dirname, '../..'));
 
-const mediaBase = new URL(process.env.SERVER_MEDIA_BASE_URL || 'http://localhost:9000/reddit-media');
+// In production media is served from the API's own domain under /reddit-media.
+const mediaBase = new URL(
+  process.env.SERVER_MEDIA_BASE_URL ||
+    (process.env.NEXT_PUBLIC_API_URL && new URL('/reddit-media', process.env.NEXT_PUBLIC_API_URL).href) ||
+    'http://localhost:9000/reddit-media',
+);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

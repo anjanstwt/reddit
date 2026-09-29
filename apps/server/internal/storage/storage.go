@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -23,9 +24,10 @@ var (
 const setupTimeout = 10 * time.Second
 
 type Storage struct {
-	client  *minio.Client
-	bucket  string
-	baseURL string
+	client    *minio.Client
+	bucket    string
+	baseURL   string
+	publicURL *url.URL
 
 	mu    sync.Mutex
 	ready bool
@@ -46,6 +48,14 @@ func New(cfg config.Config) *Storage {
 	s := &Storage{
 		bucket:  cfg.StorageBucket,
 		baseURL: strings.TrimRight(cfg.MediaBaseURL, "/"),
+	}
+	if cfg.StoragePublicURL != "" {
+		public, err := url.Parse(cfg.StoragePublicURL)
+		if err != nil || public.Host == "" {
+			log.Printf("storage: invalid SERVER_STORAGE_PUBLIC_URL %q, ignoring it", cfg.StoragePublicURL)
+		} else {
+			s.publicURL = public
+		}
 	}
 	if cfg.StorageAccessKey == "" || cfg.StorageSecretKey == "" {
 		log.Printf("storage: no credentials, uploads are disabled")
@@ -126,11 +136,14 @@ func (s *Storage) PresignUpload(ctx context.Context, key, contentType string, ma
 		return nil, err
 	}
 
-	url, fields, err := s.client.PresignedPostPolicy(ctx, policy)
+	target, fields, err := s.client.PresignedPostPolicy(ctx, policy)
 	if err != nil {
 		return nil, err
 	}
-	return &Upload{URL: url.String(), Fields: fields, ExpiresAt: expiresAt}, nil
+	if s.publicURL != nil {
+		target.Scheme, target.Host = s.publicURL.Scheme, s.publicURL.Host
+	}
+	return &Upload{URL: target.String(), Fields: fields, ExpiresAt: expiresAt}, nil
 }
 
 func (s *Storage) Stat(ctx context.Context, key string) (*Object, error) {

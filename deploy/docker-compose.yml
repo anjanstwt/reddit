@@ -26,3 +26,18 @@ services:
     ports:
       - '127.0.0.1:3000:3000'
     logging: *logging
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ':9001'
+    env_file: .env
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    volumes:
+      - minio_data:/data
+    logging: *logging
+
+volumes:
+  minio_data:
