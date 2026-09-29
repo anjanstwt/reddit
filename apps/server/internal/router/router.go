@@ -10,6 +10,7 @@ import (
 
 	"reddit/server/internal/config"
 	"reddit/server/internal/handlers/auth"
+	"reddit/server/internal/handlers/communities"
 	"reddit/server/internal/handlers/health"
 	"reddit/server/internal/handlers/users"
 	"reddit/server/internal/middleware"
@@ -34,10 +35,12 @@ func New(cfg config.Config, db *gorm.DB) *gin.Engine {
 	healthH := health.New(db)
 	authH := auth.New(db, cfg)
 	usersH := users.New(db, cfg)
+	communitiesH := communities.New(db, cfg)
 
 	r.GET("/health", healthH.Health)
 
 	requireAuth := middleware.RequireAuth(cfg.JWTSecret)
+	optionalAuth := middleware.OptionalAuth(cfg.JWTSecret)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -51,6 +54,13 @@ func New(cfg config.Config, db *gorm.DB) *gin.Engine {
 		usersGroup.GET("/:username", usersH.GetUser)
 		usersGroup.POST("/:username/follow", requireAuth, usersH.Follow)
 		usersGroup.DELETE("/:username/follow", requireAuth, usersH.Unfollow)
+
+		communitiesGroup := v1.Group("/communities")
+		communitiesGroup.POST("", requireAuth, communitiesH.CreateCommunity)
+		communitiesGroup.GET("/:name", optionalAuth, communitiesH.GetCommunity)
+		communitiesGroup.PATCH("/:name", requireAuth, communitiesH.UpdateCommunity)
+		communitiesGroup.POST("/:name/join", requireAuth, communitiesH.Join)
+		communitiesGroup.DELETE("/:name/join", requireAuth, communitiesH.Leave)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
