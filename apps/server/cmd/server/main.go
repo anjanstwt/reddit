@@ -13,6 +13,7 @@ import (
 	"reddit/server/internal/config"
 	"reddit/server/internal/database"
 	"reddit/server/internal/router"
+	"reddit/server/internal/storage"
 )
 
 func main() {
@@ -29,9 +30,16 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
+	storageCtx, cancelStorage := context.WithTimeout(context.Background(), 10*time.Second)
+	store, err := storage.New(storageCtx, cfg)
+	cancelStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(cfg, db),
+		Handler:           router.New(cfg, db, store),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
