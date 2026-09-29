@@ -1,4 +1,4 @@
-import type { ApiUser, AuthResponse } from '@/lib/api';
+import type { AuthResponse, User as ApiUser } from '@/lib/server/types';
 
 declare module 'next-auth' {
   interface Session {

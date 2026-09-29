@@ -2,7 +2,8 @@ import type { AuthOptions } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import GoogleProvider from 'next-auth/providers/google';
 
-import { api, type AuthResponse, type AuthTokens } from './api';
+import { api } from './server/api';
+import type { AuthTokens } from './server/types';
 
 // Refresh a little before the access token actually expires.
 const REFRESH_MARGIN_MS = 60 * 1000;
@@ -19,10 +20,7 @@ function withTokens(token: JWT, tokens: AuthTokens): JWT {
 
 async function refreshTokens(token: JWT): Promise<JWT> {
   try {
-    const tokens = await api<AuthTokens>('/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken: token.refreshToken }),
-    });
+    const tokens = await api.auth.refresh(token.refreshToken);
     return withTokens(token, tokens);
   } catch {
     return { ...token, error: 'RefreshTokenError' };
@@ -44,10 +42,7 @@ export const authOptions: AuthOptions = {
       if (account?.provider !== 'google' || !account.id_token) return false;
 
       try {
-        user.api = await api<AuthResponse>('/auth/google', {
-          method: 'POST',
-          body: JSON.stringify({ idToken: account.id_token }),
-        });
+        user.api = await api.auth.google(account.id_token);
         return true;
       } catch (err) {
         console.error('google sign-in failed', err);
