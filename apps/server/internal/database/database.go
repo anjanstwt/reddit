@@ -42,5 +42,10 @@ func Migrate(db *gorm.DB) error {
 		&models.Follow{},
 		&models.Community{},
 		&models.CommunityMember{},
+		&models.Thread{},
+		&models.ThreadVote{},
+		&models.SavedThread{},
+		&models.ThreadUserMention{},
+		&models.ThreadCommunityMention{},
 	)
 }
