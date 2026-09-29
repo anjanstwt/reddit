@@ -1,26 +1,16 @@
 import type { LucideIcon } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-interface IconButtonProps extends React.ComponentProps<'button'> {
+interface IconButtonProps extends React.ComponentProps<typeof Button> {
   icon: LucideIcon;
   label: string;
 }
 
-export default function IconButton({ icon: Icon, label, className, ...props }: IconButtonProps) {
+export default function IconButton({ icon: Icon, label, ...props }: IconButtonProps) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      className={cn(
-        'flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full',
-        'text-neutral-200 transition-colors hover:bg-white/10',
-        className,
-      )}
-      {...props}
-    >
+    <Button variant="ghost" size="icon" aria-label={label} title={label} {...props}>
       <Icon size={20} strokeWidth={1.75} />
-    </button>
+    </Button>
   );
 }

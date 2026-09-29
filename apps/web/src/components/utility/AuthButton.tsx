@@ -4,6 +4,8 @@ import { LogOut } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import Avatar from '@/components/utility/Avatar';
 import { cn } from '@/lib/utils';
 
 export default function AuthButton() {
@@ -16,13 +18,9 @@ export default function AuthButton() {
 
   if (!session || session.error) {
     return (
-      <button
-        type="button"
-        onClick={() => signIn('google')}
-        className="h-9 cursor-pointer rounded-full bg-neutral-200 px-4 text-sm font-semibold text-ink transition-colors hover:bg-white"
-      >
+      <Button onClick={() => signIn('google')} className="font-semibold">
         Log In
-      </button>
+      </Button>
     );
   }
 
@@ -30,21 +28,9 @@ export default function AuthButton() {
 
   return (
     <div className="relative" onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setOpen(false)}>
-      <button
-        type="button"
-        aria-label="Account menu"
-        onClick={() => setOpen((o) => !o)}
-        className="flex size-10 cursor-pointer items-center justify-center rounded-full hover:bg-white/10"
-      >
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt="" className="size-8 rounded-full object-cover" />
-        ) : (
-          <span className="flex size-8 items-center justify-center rounded-full bg-white/10 text-sm font-semibold">
-            {name.charAt(0).toUpperCase()}
-          </span>
-        )}
-      </button>
+      <Button variant="ghost" size="icon" aria-label="Account menu" onClick={() => setOpen((o) => !o)}>
+        <Avatar src={image} name={name} size={32} />
+      </Button>
 
       {open && (
         <div
@@ -57,14 +43,14 @@ export default function AuthButton() {
             <p className="truncate text-sm font-medium">{name}</p>
             <p className="truncate text-xs text-steel">{username ? `u/${username}` : 'No username yet'}</p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={() => signOut()}
-            className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5"
+            className="h-10 w-full justify-start gap-3 rounded-none px-4 font-normal hover:bg-white/5"
           >
             <LogOut size={18} strokeWidth={1.75} />
             Log Out
-          </button>
+          </Button>
         </div>
       )}
     </div>
