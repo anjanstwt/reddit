@@ -12,7 +12,6 @@ import (
 
 	"reddit/server/internal/config"
 	"reddit/server/internal/database"
-	"reddit/server/internal/handlers"
 	"reddit/server/internal/router"
 )
 
@@ -30,11 +29,9 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	h := handlers.New(db, cfg)
-
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(cfg, h),
+		Handler:           router.New(cfg, db),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

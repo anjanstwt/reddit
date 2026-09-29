@@ -19,6 +19,8 @@ func Connect(databaseURL string, debug bool) (*gorm.DB, error) {
 
 	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{
 		Logger: logger.Default.LogMode(logLevel),
+		// Turns Postgres unique violations into gorm.ErrDuplicatedKey, etc.
+		TranslateError: true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("connect to database: %w", err)

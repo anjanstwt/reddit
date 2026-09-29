@@ -1,4 +1,4 @@
-package handlers
+package users
 
 import (
 	"gorm.io/gorm"
@@ -6,7 +6,7 @@ import (
 	"reddit/server/internal/config"
 )
 
-// Handler holds the dependencies every handler needs.
+// Handler holds what the users handlers need.
 type Handler struct {
 	DB  *gorm.DB
 	Cfg config.Config
