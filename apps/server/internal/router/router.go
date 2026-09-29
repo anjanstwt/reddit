@@ -58,6 +58,7 @@ func New(cfg config.Config, db *gorm.DB, store *storage.Storage) *gin.Engine {
 		usersGroup.PATCH("/me", requireAuth, usersH.UpdateMe)
 		usersGroup.GET("/me/saved", requireAuth, threadsH.ListSaved)
 		usersGroup.GET("/me/communities", requireAuth, communitiesH.ListMine)
+		usersGroup.GET("/me/feed", requireAuth, threadsH.ListHomeFeed)
 		usersGroup.GET("/:username", usersH.GetUser)
 		usersGroup.GET("/:username/followers", usersH.ListFollowers)
 		usersGroup.GET("/:username/following", usersH.ListFollowing)
@@ -78,6 +79,7 @@ func New(cfg config.Config, db *gorm.DB, store *storage.Storage) *gin.Engine {
 		communitiesGroup.POST("/:name/threads", requireAuth, threadsH.CreatePost)
 
 		threadsGroup := v1.Group("/threads")
+		threadsGroup.GET("", optionalAuth, threadsH.ListAllPosts)
 		threadsGroup.GET("/:id", optionalAuth, threadsH.GetThread)
 		threadsGroup.GET("/:id/comments", optionalAuth, threadsH.ListComments)
 		threadsGroup.POST("/:id/replies", requireAuth, threadsH.CreateReply)
