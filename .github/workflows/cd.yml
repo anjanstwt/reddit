@@ -104,8 +104,8 @@ jobs:
         run: |
           docker pull "$IMAGE_PREFIX-server:sha-$SHA"
           docker pull "$IMAGE_PREFIX-web:sha-$SHA"
-          docker pull minio/minio:latest
-          docker save "$IMAGE_PREFIX-server:sha-$SHA" "$IMAGE_PREFIX-web:sha-$SHA" minio/minio:latest | gzip > images.tar.gz
+          docker pull cgr.dev/chainguard/minio:latest
+          docker save "$IMAGE_PREFIX-server:sha-$SHA" "$IMAGE_PREFIX-web:sha-$SHA" cgr.dev/chainguard/minio:latest | gzip > images.tar.gz
           ls -lh images.tar.gz
 
       - name: Copy compose file
