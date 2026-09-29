@@ -15,6 +15,13 @@ type Config struct {
 	JWTSecret        string
 	JWTRefreshSecret string
 	GoogleClientID   string
+
+	StorageEndpoint  string
+	StorageAccessKey string
+	StorageSecretKey string
+	StorageBucket    string
+	StorageUseSSL    bool
+	MediaBaseURL     string
 }
 
 func (c Config) IsProduction() bool {
@@ -32,6 +39,13 @@ func Load() (Config, error) {
 		JWTSecret:        os.Getenv("SERVER_JWT_SECRET"),
 		JWTRefreshSecret: os.Getenv("SERVER_JWT_REFRESH_SECRET"),
 		GoogleClientID:   os.Getenv("GOOGLE_CLIENT_ID"),
+
+		StorageEndpoint:  getEnv("SERVER_STORAGE_ENDPOINT", "localhost:9000"),
+		StorageAccessKey: os.Getenv("SERVER_STORAGE_ACCESS_KEY"),
+		StorageSecretKey: os.Getenv("SERVER_STORAGE_SECRET_KEY"),
+		StorageBucket:    getEnv("SERVER_STORAGE_BUCKET", "reddit-media"),
+		StorageUseSSL:    os.Getenv("SERVER_STORAGE_USE_SSL") == "true",
+		MediaBaseURL:     getEnv("SERVER_MEDIA_BASE_URL", "http://localhost:9000/reddit-media"),
 	}
 
 	required := map[string]string{
@@ -39,6 +53,8 @@ func Load() (Config, error) {
 		"SERVER_JWT_SECRET":         cfg.JWTSecret,
 		"SERVER_JWT_REFRESH_SECRET": cfg.JWTRefreshSecret,
 		"GOOGLE_CLIENT_ID":          cfg.GoogleClientID,
+		"SERVER_STORAGE_ACCESS_KEY": cfg.StorageAccessKey,
+		"SERVER_STORAGE_SECRET_KEY": cfg.StorageSecretKey,
 	}
 	for key, val := range required {
 		if val == "" {
