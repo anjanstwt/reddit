@@ -40,6 +40,7 @@ func Migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&models.User{},
 		&models.Follow{},
+		&models.Media{},
 		&models.Community{},
 		&models.CommunityMember{},
 		&models.Thread{},
@@ -47,5 +48,6 @@ func Migrate(db *gorm.DB) error {
 		&models.SavedThread{},
 		&models.ThreadUserMention{},
 		&models.ThreadCommunityMention{},
+		&models.ThreadMedia{},
 	)
 }

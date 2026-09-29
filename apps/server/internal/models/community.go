@@ -12,6 +12,11 @@ type Community struct {
 	Title       string `gorm:"size:100;not null" json:"title"`
 	Description string `gorm:"size:500;not null;default:''" json:"description"`
 
+	IconMediaID   *string `gorm:"type:uuid" json:"iconMediaId"`
+	IconMedia     *Media  `gorm:"foreignKey:IconMediaID;constraint:OnDelete:SET NULL" json:"-"`
+	BannerMediaID *string `gorm:"type:uuid" json:"bannerMediaId"`
+	BannerMedia   *Media  `gorm:"foreignKey:BannerMediaID;constraint:OnDelete:SET NULL" json:"-"`
+
 	CreatedByID string `gorm:"type:uuid;not null" json:"createdById"`
 	CreatedBy   *User  `gorm:"constraint:OnDelete:RESTRICT" json:"createdBy,omitempty"`
 

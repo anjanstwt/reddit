@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// a thread means both post and comment, 
+// a thread means both post and comment,
 // means a post will have, parent as null, root as null, depth = 0, and a title
 // and comment will have, parent, root, depth >= 1, and no title
 type Thread struct {
@@ -43,7 +43,7 @@ type Thread struct {
 	CommentCount int `gorm:"not null;default:0" json:"commentCount"`
 
 	EditedAt *time.Time `json:"editedAt"`
-	
+
 	// soft deleting the threads
 	DeletedAt *time.Time `json:"deletedAt"`
 	CreatedAt time.Time  `gorm:"index:idx_threads_community_created,priority:2;index:idx_threads_author_created,priority:2;index:idx_threads_root_created,priority:2" json:"createdAt"`

@@ -15,8 +15,12 @@ type User struct {
 	// so uniqueness is case-insensitive without extra work.
 	Username *string `gorm:"size:20;uniqueIndex;check:user_username_format,username ~ '^[a-z0-9_]{3,20}$'" json:"username"`
 	Name     string  `gorm:"not null" json:"name"`
-	Image    *string `json:"image"`
-	Bio      string  `gorm:"size:200;not null;default:''" json:"bio"`
+	Image    *string `json:"image"` // Google profile picture URL
+
+	// Uploaded avatar; overrides Image when set. No FK here: media already
+	// references users (owner), and a cycle would break AutoMigrate.
+	AvatarMediaID *string `gorm:"type:uuid" json:"avatarMediaId"`
+	Bio           string  `gorm:"size:200;not null;default:''" json:"bio"`
 
 	FollowerCount  int `gorm:"not null;default:0" json:"followerCount"`
 	FollowingCount int `gorm:"not null;default:0" json:"followingCount"`
