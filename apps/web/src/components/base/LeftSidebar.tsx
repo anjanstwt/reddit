@@ -4,6 +4,7 @@ import { CircleHelp, Compass, House, Info, Menu, Plus, ScrollText, Settings, Tre
 import { useState } from 'react';
 
 import IconButton from '@/components/utility/IconButton';
+import { useMyCommunities } from '@/hooks/useMyCommunities';
 import SidebarItem from '@/components/utility/SidebarItem';
 import SidebarSection from '@/components/utility/SidebarSection';
 import { cn } from '@/lib/utils';
@@ -25,6 +26,7 @@ const resources = [
 
 export default function LeftSidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const { data: joined } = useMyCommunities();
 
   return (
     <aside
@@ -55,6 +57,14 @@ export default function LeftSidebar() {
         <SidebarSection title="Communities">
           {communities.map((item) => (
             <SidebarItem key={item.href} {...item} />
+          ))}
+          {joined?.map((community) => (
+            <SidebarItem
+              key={community.id}
+              href={`/r/${community.name}`}
+              label={`r/${community.name}`}
+              avatar={{ src: community.iconUrl, name: community.name }}
+            />
           ))}
         </SidebarSection>
 

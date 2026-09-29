@@ -1,8 +1,9 @@
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Link from 'next/link';
 
+import { Input } from '@/components/ui/input';
 import AuthButton from '@/components/utility/AuthButton';
-import { cn } from '@/lib/utils';
+import CreatePostButton from '@/components/utility/CreatePostButton';
 
 export default function Navbar() {
   return (
@@ -11,28 +12,13 @@ export default function Navbar() {
         reddit
       </Link>
 
-      <label
-        className={cn(
-          'mx-auto flex h-10 w-full max-w-[560px] items-center gap-3 rounded-full bg-white/10 px-4',
-          'transition-colors focus-within:bg-white/15 hover:bg-white/15',
-        )}
-      >
-        <Search size={18} className="shrink-0 text-steel" />
-        <input
-          type="search"
-          placeholder="Search Reddit"
-          className="w-full bg-transparent text-sm outline-none placeholder:text-steel"
-        />
-      </label>
+      <div className="relative mx-auto w-full max-w-[560px]">
+        <Search size={18} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-steel" />
+        <Input type="search" placeholder="Search Reddit" className="h-10 pl-11" />
+      </div>
 
       <nav className="flex shrink-0 items-center gap-1 lg:w-60 lg:justify-end">
-        <Link
-          href="/submit"
-          className="flex h-10 items-center gap-2 rounded-full px-3 text-sm font-medium transition-colors hover:bg-white/10"
-        >
-          <Plus size={20} strokeWidth={1.75} />
-          <span className="hidden sm:inline">Create</span>
-        </Link>
+        <CreatePostButton variant="ghost" className="h-10 px-3" />
         <AuthButton />
       </nav>
     </header>
