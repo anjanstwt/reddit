@@ -53,8 +53,6 @@ func Load() (Config, error) {
 		"SERVER_JWT_SECRET":         cfg.JWTSecret,
 		"SERVER_JWT_REFRESH_SECRET": cfg.JWTRefreshSecret,
 		"GOOGLE_CLIENT_ID":          cfg.GoogleClientID,
-		"SERVER_STORAGE_ACCESS_KEY": cfg.StorageAccessKey,
-		"SERVER_STORAGE_SECRET_KEY": cfg.StorageSecretKey,
 	}
 	for key, val := range required {
 		if val == "" {

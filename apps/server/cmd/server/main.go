@@ -31,12 +31,7 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	storageCtx, cancelStorage := context.WithTimeout(context.Background(), 10*time.Second)
-	store, err := storage.New(storageCtx, cfg)
-	cancelStorage()
-	if err != nil {
-		log.Fatal(err)
-	}
+	store := storage.New(cfg)
 
 	jobsCtx, stopJobs := context.WithCancel(context.Background())
 	defer stopJobs()

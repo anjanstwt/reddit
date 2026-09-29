@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -13,12 +15,20 @@ import (
 	"reddit/server/internal/config"
 )
 
-var ErrNotFound = errors.New("object not found")
+var (
+	ErrNotFound    = errors.New("object not found")
+	ErrUnavailable = errors.New("storage unavailable")
+)
+
+const setupTimeout = 10 * time.Second
 
 type Storage struct {
 	client  *minio.Client
 	bucket  string
 	baseURL string
+
+	mu    sync.Mutex
+	ready bool
 }
 
 type Upload struct {
@@ -32,38 +42,71 @@ type Object struct {
 	ContentType string
 }
 
-func New(ctx context.Context, cfg config.Config) (*Storage, error) {
+func New(cfg config.Config) *Storage {
+	s := &Storage{
+		bucket:  cfg.StorageBucket,
+		baseURL: strings.TrimRight(cfg.MediaBaseURL, "/"),
+	}
+	if cfg.StorageAccessKey == "" || cfg.StorageSecretKey == "" {
+		log.Printf("storage: no credentials, uploads are disabled")
+		return s
+	}
+
 	client, err := minio.New(cfg.StorageEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.StorageAccessKey, cfg.StorageSecretKey, ""),
 		Secure: cfg.StorageUseSSL,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("storage client: %w", err)
+		log.Printf("storage: %v, uploads are disabled", err)
+		return s
+	}
+	s.client = client
+	return s
+}
+
+func (s *Storage) Ready(ctx context.Context) error {
+	if s.client == nil {
+		return ErrUnavailable
 	}
 
-	exists, err := client.BucketExists(ctx, cfg.StorageBucket)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.ready {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, setupTimeout)
+	defer cancel()
+	if err := s.setupBucket(ctx); err != nil {
+		log.Printf("storage: %v", err)
+		return fmt.Errorf("%w: %v", ErrUnavailable, err)
+	}
+	s.ready = true
+	return nil
+}
+
+func (s *Storage) setupBucket(ctx context.Context) error {
+	exists, err := s.client.BucketExists(ctx, s.bucket)
 	if err != nil {
-		return nil, fmt.Errorf("storage bucket check: %w", err)
+		return fmt.Errorf("bucket check: %w", err)
 	}
 	if !exists {
-		if err := client.MakeBucket(ctx, cfg.StorageBucket, minio.MakeBucketOptions{}); err != nil {
-			return nil, fmt.Errorf("storage create bucket: %w", err)
+		if err := s.client.MakeBucket(ctx, s.bucket, minio.MakeBucketOptions{}); err != nil {
+			return fmt.Errorf("create bucket: %w", err)
 		}
 	}
 
-	policy := fmt.Sprintf(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/*"]}]}`, cfg.StorageBucket)
-	if err := client.SetBucketPolicy(ctx, cfg.StorageBucket, policy); err != nil {
-		return nil, fmt.Errorf("storage bucket policy: %w", err)
+	policy := fmt.Sprintf(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/*"]}]}`, s.bucket)
+	if err := s.client.SetBucketPolicy(ctx, s.bucket, policy); err != nil {
+		return fmt.Errorf("bucket policy: %w", err)
 	}
-
-	return &Storage{
-		client:  client,
-		bucket:  cfg.StorageBucket,
-		baseURL: strings.TrimRight(cfg.MediaBaseURL, "/"),
-	}, nil
+	return nil
 }
 
 func (s *Storage) PresignUpload(ctx context.Context, key, contentType string, maxBytes int64, ttl time.Duration) (*Upload, error) {
+	if err := s.Ready(ctx); err != nil {
+		return nil, err
+	}
 	expiresAt := time.Now().Add(ttl)
 
 	policy := minio.NewPostPolicy()
@@ -91,6 +134,9 @@ func (s *Storage) PresignUpload(ctx context.Context, key, contentType string, ma
 }
 
 func (s *Storage) Stat(ctx context.Context, key string) (*Object, error) {
+	if err := s.Ready(ctx); err != nil {
+		return nil, err
+	}
 	info, err := s.client.StatObject(ctx, s.bucket, key, minio.StatObjectOptions{})
 	if err != nil {
 		if minio.ToErrorResponse(err).Code == "NoSuchKey" {
@@ -102,6 +148,9 @@ func (s *Storage) Stat(ctx context.Context, key string) (*Object, error) {
 }
 
 func (s *Storage) Remove(ctx context.Context, key string) error {
+	if err := s.Ready(ctx); err != nil {
+		return err
+	}
 	return s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})
 }
 

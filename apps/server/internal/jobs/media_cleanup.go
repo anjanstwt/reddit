@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -38,6 +39,13 @@ func RunMediaCleanup(ctx context.Context, db *gorm.DB, store *storage.Storage) {
 }
 
 func CleanupPendingMedia(ctx context.Context, db *gorm.DB, store *storage.Storage, before time.Time) (int, error) {
+	if err := store.Ready(ctx); err != nil {
+		if errors.Is(err, storage.ErrUnavailable) {
+			return 0, nil
+		}
+		return 0, err
+	}
+
 	var stale []models.Media
 	err := db.WithContext(ctx).
 		Where("status = ? AND created_at < ?", models.MediaPending, before).

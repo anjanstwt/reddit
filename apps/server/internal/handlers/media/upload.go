@@ -39,6 +39,11 @@ func (h *Handler) CreateUpload(c *gin.Context) {
 		return
 	}
 
+	if err := h.Storage.Ready(c.Request.Context()); err != nil {
+		storageUnavailable(c)
+		return
+	}
+
 	key, err := newStorageKey(t.ext)
 	if err != nil {
 		response.SystemError(c)
@@ -109,6 +114,10 @@ func (h *Handler) CompleteUpload(c *gin.Context) {
 		response.Error(c, "UPLOAD_MISSING", "The file hasn't been uploaded yet", http.StatusBadRequest)
 		return
 	}
+	if errors.Is(err, storage.ErrUnavailable) {
+		storageUnavailable(c)
+		return
+	}
 	if err != nil {
 		response.SystemError(c)
 		return
@@ -134,6 +143,10 @@ func (h *Handler) CompleteUpload(c *gin.Context) {
 	media.Width, media.Height, media.DurationMs = body.Width, body.Height, body.DurationMs
 
 	response.Success(c, h.toMediaResponse(media), "Upload completed", http.StatusOK)
+}
+
+func storageUnavailable(c *gin.Context) {
+	response.Error(c, "STORAGE_UNAVAILABLE", "Uploads are unavailable right now", http.StatusServiceUnavailable)
 }
 
 func newStorageKey(ext string) (string, error) {
