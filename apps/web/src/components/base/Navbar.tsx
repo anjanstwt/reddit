@@ -1,11 +1,9 @@
-import { Search } from 'lucide-react';
 import Link from 'next/link';
 
-import { Input } from '@/components/ui/input';
 import AuthButton from '@/components/utility/AuthButton';
-import Block from '@/components/utility/Block';
 import CreatePostButton from '@/components/utility/CreatePostButton';
 import RightSidebarToggle from '@/components/utility/RightSidebarToggle';
+import SearchBar from '@/components/utility/SearchBar';
 import SidebarToggle from '@/components/utility/SidebarToggle';
 
 export default function Navbar() {
@@ -18,14 +16,7 @@ export default function Navbar() {
         </Link>
       </div>
 
-      <Block className="mx-auto h-10 w-full max-w-[560px] flex-row items-center gap-3 px-4 transition-colors focus-within:bg-[#1c1c1c] hover:bg-[#1a1a1a]">
-        <Search size={17} className="pointer-events-none shrink-0 text-steel" />
-        <Input
-          type="search"
-          placeholder="Search Reddit"
-          className="h-full rounded-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
-        />
-      </Block>
+      <SearchBar />
 
       <nav className="flex shrink-0 items-center gap-1 lg:w-60 lg:justify-end">
         <CreatePostButton variant="ghost" className="h-10 px-3" />

@@ -5,6 +5,7 @@ import Navbar from '@/components/base/Navbar';
 import PaneFrame from '@/components/base/PaneFrame';
 import RightSidebar from '@/components/base/RightSidebar';
 import CreateCommunityDialog from '@/components/community/CreateCommunityDialog';
+import OnboardingDialog from '@/components/onboarding/OnboardingDialog';
 import CreatePostDialog from '@/components/post/CreatePostDialog';
 import Providers from '@/components/providers';
 
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <CreatePostDialog />
           <CreateCommunityDialog />
+          <OnboardingDialog />
         </Providers>
       </body>
     </html>

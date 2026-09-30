@@ -36,6 +36,7 @@ export interface Profile {
   bio: string;
   followerCount: number;
   followingCount: number;
+  isFollowing: boolean;
   createdAt: string;
 }
 

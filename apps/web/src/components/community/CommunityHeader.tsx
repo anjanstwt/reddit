@@ -2,20 +2,14 @@
 
 import { Plus } from 'lucide-react';
 import Image from 'next/image';
-import { signIn } from 'next-auth/react';
 
-import { Button } from '@/components/ui/button';
 import Avatar from '@/components/utility/Avatar';
 import CreatePostButton from '@/components/utility/CreatePostButton';
-import { useAccessToken } from '@/hooks/useAccessToken';
-import { useMembership } from '@/hooks/useCommunity';
+import JoinButton from '@/components/utility/JoinButton';
 import type { Community } from '@/lib/server/types';
 
 export default function CommunityHeader({ community }: { community: Community }) {
-  const { token } = useAccessToken();
-  const membership = useMembership(community.name);
 
-  const role = community.viewerRole;
 
   return (
     <header className="mb-4">
@@ -43,15 +37,7 @@ export default function CommunityHeader({ community }: { community: Community })
             Create Post
           </CreatePostButton>
 
-          {role !== 'owner' && (
-            <Button
-              variant={role ? 'outline' : 'default'}
-              disabled={membership.isPending}
-              onClick={() => (token ? membership.mutate(!role) : signIn('google'))}
-            >
-              {role ? 'Joined' : 'Join'}
-            </Button>
-          )}
+          <JoinButton community={community} />
         </div>
       </div>
     </header>

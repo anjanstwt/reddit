@@ -25,6 +25,7 @@ export function useMembership(name: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community', name] });
       queryClient.invalidateQueries({ queryKey: ['me'] });
+      queryClient.invalidateQueries({ queryKey: ['search', 'communities'] });
       queryClient.invalidateQueries({ queryKey: keys.feeds });
     },
   });

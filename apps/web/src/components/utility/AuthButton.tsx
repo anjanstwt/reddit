@@ -1,16 +1,19 @@
 'use client';
 
-import { LogOut } from 'lucide-react';
+import { LogOut, UserRound } from 'lucide-react';
+import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import Avatar from '@/components/utility/Avatar';
+import { useMe } from '@/hooks/useMe';
 import { cn } from '@/lib/utils';
 
 export default function AuthButton() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
+  const { data: me } = useMe();
 
   if (status === 'loading') {
     return <div className="size-9 animate-pulse rounded-full bg-white/10" />;
@@ -24,7 +27,9 @@ export default function AuthButton() {
     );
   }
 
-  const { name, username, image } = session.user;
+  const name = me?.name ?? session.user.name;
+  const username = me?.username ?? session.user.username;
+  const image = me?.avatarUrl ?? session.user.image;
 
   return (
     <div className="relative" onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setOpen(false)}>
@@ -43,6 +48,18 @@ export default function AuthButton() {
             <p className="truncate text-sm font-medium">{name}</p>
             <p className="truncate text-xs text-steel">{username ? `u/${username}` : 'No username yet'}</p>
           </div>
+          {username && (
+            <Button
+              asChild
+              variant="ghost"
+              className="h-10 w-full justify-start gap-3 rounded-none px-4 font-normal hover:bg-white/5"
+            >
+              <Link href={`/u/${username}`} onClick={() => setOpen(false)}>
+                <UserRound size={18} strokeWidth={1.75} />
+                Profile
+              </Link>
+            </Button>
+          )}
           <Button
             variant="ghost"
             onClick={() => signOut()}

@@ -1,6 +1,7 @@
 'use client';
 
 import { MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -31,9 +32,13 @@ export default function Comment({ comment, postId, locked }: CommentProps) {
 
       <div className="min-w-0 flex-1">
         <header className="flex items-center gap-1.5 text-xs text-steel">
-          <span className="font-semibold text-neutral-200">
-            {author ? `u/${author.username ?? author.name}` : '[deleted]'}
-          </span>
+          {author?.username ? (
+            <Link href={`/u/${author.username}`} className="font-semibold text-neutral-200 hover:underline">
+              u/{author.username}
+            </Link>
+          ) : (
+            <span className="font-semibold text-neutral-200">{author ? author.name : '[deleted]'}</span>
+          )}
           <span>•</span>
           <time dateTime={comment.createdAt}>{timeAgo(comment.createdAt)}</time>
           {comment.editedAt && !deleted && <span>(edited)</span>}
@@ -49,7 +54,12 @@ export default function Comment({ comment, postId, locked }: CommentProps) {
           <footer className="mt-1 flex items-center gap-1">
             <VoteButtons thread={comment} className="bg-transparent" />
             {!locked && (
-              <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-steel" onClick={() => setReplying((r) => !r)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1.5 text-steel"
+                onClick={() => setReplying((r) => !r)}
+              >
                 <MessageCircle size={16} strokeWidth={1.75} />
                 Reply
               </Button>

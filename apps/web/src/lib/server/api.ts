@@ -33,14 +33,16 @@ export const api = {
       body: { username?: string; name?: string; bio?: string; avatarMediaId?: string },
       token: string,
     ) => request<Me>('/users/me', { method: 'PATCH', body: json(body), token }),
-    get: (username: string) => request<Profile>(`/users/${username}`),
+    search: (params: Page & { q?: string } = {}, token?: string) =>
+      request<Profile[]>('/users', { query: { ...params }, token }),
+    get: (username: string, token?: string) => request<Profile>(`/users/${username}`, { token }),
     follow: (username: string, token: string) => request<null>(`/users/${username}/follow`, { method: 'POST', token }),
     unfollow: (username: string, token: string) =>
       request<null>(`/users/${username}/follow`, { method: 'DELETE', token }),
-    followers: (username: string, page: Page = {}) =>
-      request<Profile[]>(`/users/${username}/followers`, { query: { ...page } }),
-    following: (username: string, page: Page = {}) =>
-      request<Profile[]>(`/users/${username}/following`, { query: { ...page } }),
+    followers: (username: string, page: Page = {}, token?: string) =>
+      request<Profile[]>(`/users/${username}/followers`, { query: { ...page }, token }),
+    following: (username: string, page: Page = {}, token?: string) =>
+      request<Profile[]>(`/users/${username}/following`, { query: { ...page }, token }),
     threads: (username: string, params: Page & { type?: 'posts' | 'comments' } = {}, token?: string) =>
       request<Thread[]>(`/users/${username}/threads`, { query: { ...params }, token }),
     feed: (params: Page & { sort?: PostSort }, token: string) =>

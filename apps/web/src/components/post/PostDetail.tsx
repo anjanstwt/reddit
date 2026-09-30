@@ -43,14 +43,28 @@ export default function PostDetail({ id }: { id: string }) {
     <article className="flex flex-col gap-4">
       <header className="flex items-center gap-2 text-xs text-steel">
         {post.community && (
-          <Link href={`/r/${post.community.name}`} className="flex items-center gap-2 font-semibold text-neutral-200 hover:underline">
+          <Link
+            href={`/r/${post.community.name}`}
+            className="flex items-center gap-2 font-semibold text-neutral-200 hover:underline"
+          >
             <Avatar name={post.community.name} size={32} />
             r/{post.community.name}
           </Link>
         )}
         <span>•</span>
         <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
-        {author && <span>• u/{author.username ?? author.name}</span>}
+        {author && (
+          <span>
+            •{' '}
+            {author.username ? (
+              <Link href={`/u/${author.username}`} className="hover:text-neutral-200 hover:underline">
+                u/{author.username}
+              </Link>
+            ) : (
+              author.name
+            )}
+          </span>
+        )}
         {post.editedAt && !deleted && <span>(edited)</span>}
       </header>
 

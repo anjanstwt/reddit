@@ -51,6 +51,14 @@ function Breadcrumb({ pathname }: { pathname: string }) {
   }
 
   const [, section, name, sub] = pathname.split('/');
+  if (section === 'u' && name) {
+    return (
+      <span className="flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/80">
+        <Avatar name={name} size={18} />
+        u/{name}
+      </span>
+    );
+  }
   if (section !== 'r' || !name) return null;
 
   return (
