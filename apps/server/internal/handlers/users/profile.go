@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	"reddit/server/internal/mediaref"
+	"reddit/server/internal/middleware"
 	"reddit/server/internal/models"
 	"reddit/server/internal/response"
 )
@@ -23,11 +24,16 @@ type profile struct {
 	Bio            string    `json:"bio"`
 	FollowerCount  int       `json:"followerCount"`
 	FollowingCount int       `json:"followingCount"`
+	IsFollowing    bool      `json:"isFollowing"`
 	CreatedAt      time.Time `json:"createdAt"`
 }
 
-func (h *Handler) toProfiles(users []models.User) ([]profile, error) {
+func (h *Handler) toProfiles(users []models.User, viewerID string) ([]profile, error) {
 	avatars, err := h.avatarURLs(users)
+	if err != nil {
+		return nil, err
+	}
+	following, err := h.followedIDs(viewerID, users)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +48,34 @@ func (h *Handler) toProfiles(users []models.User) ([]profile, error) {
 			Bio:            u.Bio,
 			FollowerCount:  u.FollowerCount,
 			FollowingCount: u.FollowingCount,
+			IsFollowing:    following[u.ID],
 			CreatedAt:      u.CreatedAt,
 		}
 	}
 	return profiles, nil
+}
+
+func (h *Handler) followedIDs(viewerID string, users []models.User) (map[string]bool, error) {
+	followed := map[string]bool{}
+	if viewerID == "" || len(users) == 0 {
+		return followed, nil
+	}
+
+	ids := make([]string, len(users))
+	for i, u := range users {
+		ids[i] = u.ID
+	}
+	var followeeIDs []string
+	err := h.DB.Model(&models.Follow{}).
+		Where("follower_id = ? AND followee_id IN ?", viewerID, ids).
+		Pluck("followee_id", &followeeIDs).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, id := range followeeIDs {
+		followed[id] = true
+	}
+	return followed, nil
 }
 
 func (h *Handler) avatarURLs(users []models.User) (map[string]*string, error) {
@@ -78,7 +108,7 @@ func (h *Handler) GetUser(c *gin.Context) {
 	if !ok {
 		return
 	}
-	profiles, err := h.toProfiles([]models.User{*user})
+	profiles, err := h.toProfiles([]models.User{*user}, c.GetString(middleware.UserIDKey))
 	if err != nil {
 		response.SystemError(c)
 		return

@@ -107,7 +107,7 @@ func (h *Handler) listFollows(c *gin.Context, matchColumn, userColumn string) {
 		return
 	}
 
-	profiles, err := h.toProfiles(users)
+	profiles, err := h.toProfiles(users, c.GetString(middleware.UserIDKey))
 	if err != nil {
 		response.SystemError(c)
 		return
