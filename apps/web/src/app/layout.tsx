@@ -2,6 +2,7 @@ import './global.css';
 
 import LeftSidebar from '@/components/base/LeftSidebar';
 import Navbar from '@/components/base/Navbar';
+import CreateCommunityDialog from '@/components/community/CreateCommunityDialog';
 import CreatePostDialog from '@/components/post/CreatePostDialog';
 import Providers from '@/components/providers';
 
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="min-w-0 flex-1">{children}</main>
           </div>
           <CreatePostDialog />
+          <CreateCommunityDialog />
         </Providers>
       </body>
     </html>

@@ -1,19 +1,21 @@
 'use client';
 
 import { CircleHelp, Compass, House, Info, Menu, Plus, ScrollText, Settings, TrendingUp } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 
 import IconButton from '@/components/utility/IconButton';
+import { useAccessToken } from '@/hooks/useAccessToken';
 import { useMyCommunities } from '@/hooks/useMyCommunities';
 import SidebarItem from '@/components/utility/SidebarItem';
 import SidebarSection from '@/components/utility/SidebarSection';
 import { cn } from '@/lib/utils';
+import { useCreateCommunityStore } from '@/store/useCreateCommunityStore';
 
 const feeds = [
   { href: '/', icon: House, label: 'Home' },
   { href: '/popular', icon: TrendingUp, label: 'Popular' },
   { href: '/explore', icon: Compass, label: 'Explore' },
-  { href: '/communities/create', icon: Plus, label: 'Start a community' },
 ];
 
 const communities = [{ href: '/communities', icon: Settings, label: 'Manage Communities' }];
@@ -27,6 +29,8 @@ const resources = [
 export default function LeftSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { data: joined } = useMyCommunities();
+  const { token } = useAccessToken();
+  const openCreateCommunity = useCreateCommunityStore((s) => s.openDialog);
 
   return (
     <aside
@@ -52,6 +56,11 @@ export default function LeftSidebar() {
           {feeds.map((item) => (
             <SidebarItem key={item.href} {...item} />
           ))}
+          <SidebarItem
+            icon={Plus}
+            label="Start a community"
+            onClick={() => (token ? openCreateCommunity() : signIn('google'))}
+          />
         </div>
 
         <SidebarSection title="Communities">

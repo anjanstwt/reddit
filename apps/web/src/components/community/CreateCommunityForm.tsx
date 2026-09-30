@@ -1,81 +1,125 @@
 'use client';
 
+import { ChevronRight, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import FormField from '@/components/utility/FormField';
-import SignInPrompt from '@/components/utility/SignInPrompt';
-import { useAccessToken } from '@/hooks/useAccessToken';
+import Avatar from '@/components/utility/Avatar';
+import Divider from '@/components/utility/Divider';
+import IconButton from '@/components/utility/IconButton';
 import { useCreateCommunity } from '@/hooks/useCommunity';
+import { useIsMac } from '@/hooks/useIsMac';
 import { errorMessage } from '@/lib/server/fetcher';
+import { cn } from '@/lib/utils';
 
 const namePattern = /^[a-z0-9_]{3,21}$/;
 
-export default function CreateCommunityForm() {
+const GHOST = 'h-auto rounded-none bg-transparent p-0 hover:bg-transparent focus-visible:bg-transparent';
+
+export default function CreateCommunityForm({ onDone }: { onDone: () => void }) {
   const router = useRouter();
-  const { token, ready } = useAccessToken();
   const create = useCreateCommunity();
+  const isMac = useIsMac();
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  if (!ready) return null;
-  if (!token) return <SignInPrompt message="Log in to start a community" />;
-
   const validName = namePattern.test(name);
-  const canSubmit = validName && title.trim().length > 0 && !create.isPending;
+  const canSubmit = validName && !!title.trim() && !create.isPending;
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = () => {
+    if (!canSubmit) return;
     create.mutate(
       { name, title: title.trim(), description: description.trim() },
-      { onSuccess: (community) => router.push(`/r/${community.name}`) },
+      {
+        onSuccess: (community) => {
+          onDone();
+          router.push(`/r/${community.name}`);
+        },
+      },
     );
   };
 
+  const hint = create.isError
+    ? errorMessage(create.error)
+    : name && !validName
+      ? 'Use 3-21 characters: a-z, 0-9 or _'
+      : 'The name is permanent. The title and description can change later.';
+
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5">
-      <FormField label="Name" htmlFor="name" hint="3-21 characters: a-z, 0-9 or _. This can't be changed later.">
-        <div className="relative">
-          <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-steel">r/</span>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value.toLowerCase())}
-            maxLength={21}
-            className="h-10 pl-8"
-            autoFocus
-          />
+    <div
+      className="flex min-h-0 flex-1 flex-col"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          submit();
+        }
+      }}
+    >
+      <section className="flex flex-col gap-4 px-5 pt-4 pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 text-sm">
+            <span className="flex h-8 items-center gap-2 rounded-full border border-white/[0.06] pr-3 pl-1.5">
+              <Avatar name={name || 'r'} size={20} />
+              <span className={cn(!name && 'text-steel')}>r/{name || 'community'}</span>
+            </span>
+            <ChevronRight size={16} className="text-steel" />
+            <span>New community</span>
+          </div>
+          <IconButton icon={X} label="Close" onClick={onDone} className="-mr-2 size-8" />
         </div>
-      </FormField>
 
-      <FormField label="Title" htmlFor="title" hint="Shown at the top of your community.">
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} className="h-10" />
-      </FormField>
+        <label className="flex items-baseline text-2xl leading-tight font-semibold">
+          <span className="text-white/25">r/</span>
+          <Input
+            autoFocus
+            value={name}
+            placeholder="name"
+            maxLength={21}
+            onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+            className={cn(GHOST, 'text-2xl font-semibold text-neutral-100 placeholder:text-white/25')}
+          />
+        </label>
 
-      <FormField label="Description" htmlFor="description" hint="Optional, up to 500 characters.">
+        <Input
+          value={title}
+          placeholder="Title"
+          maxLength={100}
+          onChange={(e) => setTitle(e.target.value)}
+          className={cn(GHOST, 'text-lg text-neutral-200 placeholder:text-white/25')}
+        />
+      </section>
+
+      <section className="px-5 pt-1 pb-5">
         <Textarea
-          id="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          placeholder="What is this community about? (optional)"
           maxLength={500}
           rows={4}
+          onChange={(e) => setDescription(e.target.value)}
+          className={cn(GHOST, 'min-h-24 resize-none text-[15px] placeholder:text-white/25')}
         />
-      </FormField>
+      </section>
 
-      {create.isError && <p className="px-1 text-sm text-red-400">{errorMessage(create.error)}</p>}
+      <Divider />
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>
-          Cancel
+      <footer className="flex items-center gap-3 px-5 py-4">
+        <p
+          className={cn(
+            'min-w-0 flex-1 truncate text-xs',
+            create.isError || (name && !validName) ? 'text-red-400' : 'text-steel',
+          )}
+        >
+          {hint}
+        </p>
+        <Button onClick={submit} disabled={!canSubmit} className="h-8 shrink-0 gap-1.5">
+          {create.isPending ? 'Creating…' : 'Create'}
+          <kbd className="text-xs opacity-60">{isMac ? '⌘' : 'Ctrl'}↵</kbd>
         </Button>
-        <Button type="submit" disabled={!canSubmit}>
-          {create.isPending ? 'Creating…' : 'Create community'}
-        </Button>
-      </div>
-    </form>
+      </footer>
+    </div>
   );
 }

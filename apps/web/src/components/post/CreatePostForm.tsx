@@ -3,7 +3,7 @@
 import type { Editor } from '@tiptap/react';
 import { ChevronRight, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import EditorToolbar from '@/components/editor/EditorToolbar';
 import type { MediaUploader } from '@/components/editor/media';
@@ -15,6 +15,7 @@ import Avatar from '@/components/utility/Avatar';
 import Divider from '@/components/utility/Divider';
 import IconButton from '@/components/utility/IconButton';
 import { useAccessToken } from '@/hooks/useAccessToken';
+import { useIsMac } from '@/hooks/useIsMac';
 import { useMyCommunities } from '@/hooks/useMyCommunities';
 import { useCreatePost } from '@/hooks/useThread';
 import { MEDIA_LIMITS, mediaKindOf, readImageSize } from '@/lib/media';
@@ -23,6 +24,7 @@ import { errorMessage } from '@/lib/server/fetcher';
 import type { TiptapNode } from '@/lib/server/types';
 import { toStoredDoc } from '@/lib/tiptap';
 import { cn } from '@/lib/utils';
+import { useCreateCommunityStore } from '@/store/useCreateCommunityStore';
 
 const MAX_TITLE_LENGTH = 300;
 
@@ -44,6 +46,7 @@ export default function CreatePostForm({ initialCommunity, onDone }: CreatePostF
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
   const isMac = useIsMac();
+  const openCreateCommunity = useCreateCommunityStore((s) => s.openDialog);
 
   const options = joined?.map((c) => ({ name: c.name, icon: c.iconUrl })) ?? [];
   if (initialCommunity && !options.some((o) => o.name === initialCommunity)) {
@@ -125,7 +128,22 @@ export default function CreatePostForm({ initialCommunity, onDone }: CreatePostF
                     </span>
                   </SelectItem>
                 ))}
-                {options.length === 0 && <p className="px-3 py-2 text-xs text-steel">Join a community to post.</p>}
+                {options.length === 0 && (
+                  <div className="flex flex-col items-start gap-2 px-3 py-2 text-xs text-steel">
+                    You haven&apos;t joined any communities yet.
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        onDone();
+                        openCreateCommunity();
+                      }}
+                    >
+                      Start a community
+                    </Button>
+                  </div>
+                )}
               </SelectContent>
             </Select>
             <ChevronRight size={16} className="text-steel" />
@@ -184,10 +202,4 @@ export default function CreatePostForm({ initialCommunity, onDone }: CreatePostF
       </footer>
     </div>
   );
-}
-
-function useIsMac() {
-  const [isMac, setIsMac] = useState(true);
-  useEffect(() => setIsMac(/mac/i.test(navigator.userAgent)), []);
-  return isMac;
 }
