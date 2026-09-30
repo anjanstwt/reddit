@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,7 @@ interface ReplyBoxProps {
 export default function ReplyBox({ postId, parentId, placeholder = 'Add a comment', autoFocus, onDone }: ReplyBoxProps) {
   const { token, ready } = useAccessToken();
   const [text, setText] = useState('');
+  const textarea = useRef<HTMLTextAreaElement>(null);
   const reply = useReply(postId);
 
   if (ready && !token) return <SignInPrompt message="Log in to join the conversation" className="py-6" />;
@@ -37,8 +38,17 @@ export default function ReplyBox({ postId, parentId, placeholder = 'Add a commen
     );
 
   return (
-    <Block className="w-full transition-colors focus-within:bg-[#1a1a1a] shadow-md border border-[#292929] ">
+    <Block
+      onMouseDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target === textarea.current || target.closest('button')) return;
+        e.preventDefault();
+        textarea.current?.focus();
+      }}
+      className="w-full cursor-text transition-colors focus-within:bg-[#1a1a1a] shadow-md border border-[#292929]"
+    >
       <Textarea
+        ref={textarea}
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={placeholder}
@@ -53,7 +63,12 @@ export default function ReplyBox({ postId, parentId, placeholder = 'Add a commen
             Cancel
           </Button>
         )}
-        <Button size="sm" onClick={submit} disabled={!text.trim() || reply.isPending}>
+        <Button
+          size="sm"
+          onClick={submit}
+          disabled={!text.trim() || reply.isPending}
+          className="disabled:pointer-events-auto"
+        >
           {reply.isPending ? 'Posting…' : 'Comment'}
         </Button>
       </div>

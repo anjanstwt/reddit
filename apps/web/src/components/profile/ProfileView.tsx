@@ -9,6 +9,7 @@ import Avatar from '@/components/utility/Avatar';
 import FollowButton from '@/components/utility/FollowButton';
 import PostCard from '@/components/utility/PostCard';
 import PostSkeleton from '@/components/utility/PostSkeleton';
+import SeparatedList from '@/components/utility/SeparatedList';
 import { useProfile, useUserThreads } from '@/hooks/useProfile';
 import { compactNumber, timeAgo } from '@/lib/format';
 import { ApiError } from '@/lib/server/fetcher';
@@ -87,11 +88,11 @@ function Threads({ username, type }: { username: string; type: ProfileTab }) {
   if (data.length === 0) return <p className="py-12 text-center text-sm text-steel">No {type} yet.</p>;
 
   return (
-    <div className="flex flex-col divide-y divide-white/10">
+    <SeparatedList>
       {data.map((thread) =>
         type === 'posts' ? <PostCard key={thread.id} post={thread} /> : <CommentRow key={thread.id} comment={thread} />,
       )}
-    </div>
+    </SeparatedList>
   );
 }
 
@@ -99,7 +100,7 @@ function CommentRow({ comment }: { comment: Thread }) {
   const href = `/r/${comment.community?.name}/comments/${comment.rootId}`;
 
   return (
-    <article className="relative rounded-lg px-4 py-3 transition-colors hover:bg-white/[0.03]">
+    <article className="relative px-4 py-3 transition-colors hover:bg-white/[0.03]">
       <p className="text-xs text-steel">
         Commented in <span className="font-semibold text-neutral-200">r/{comment.community?.name}</span> ·{' '}
         {timeAgo(comment.createdAt)}

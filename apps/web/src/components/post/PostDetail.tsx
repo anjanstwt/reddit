@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import Avatar from '@/components/utility/Avatar';
 import PostSkeleton from '@/components/utility/PostSkeleton';
 import ReplyBox from '@/components/utility/ReplyBox';
+import MediaGallery from '@/components/utility/MediaGallery';
 import TiptapContent from '@/components/utility/TiptapContent';
 import VoteButtons from '@/components/utility/VoteButtons';
 import { useComments, useThread } from '@/hooks/useThread';
@@ -73,7 +74,10 @@ export default function PostDetail({ id }: { id: string }) {
       {deleted ? (
         <p className="text-sm text-steel italic">This post was deleted.</p>
       ) : (
-        <TiptapContent doc={post.body} media={post.media} />
+        <>
+          <TiptapContent doc={post.body} />
+          <MediaGallery doc={post.body} media={post.media} height={320} />
+        </>
       )}
 
       <footer className="flex items-center gap-2">

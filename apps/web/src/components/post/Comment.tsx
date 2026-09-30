@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Avatar from '@/components/utility/Avatar';
 import ReplyBox from '@/components/utility/ReplyBox';
+import MediaGallery from '@/components/utility/MediaGallery';
 import TiptapContent from '@/components/utility/TiptapContent';
 import VoteButtons from '@/components/utility/VoteButtons';
 import { timeAgo } from '@/lib/format';
@@ -47,7 +48,10 @@ export default function Comment({ comment, postId, locked }: CommentProps) {
         {deleted ? (
           <p className="mt-1 text-sm text-steel italic">[deleted]</p>
         ) : (
-          <TiptapContent doc={comment.body} media={comment.media} className="mt-1 text-sm" />
+          <>
+            <TiptapContent doc={comment.body} className="mt-1 text-sm" />
+            <MediaGallery doc={comment.body} media={comment.media} height={200} className="mt-2" />
+          </>
         )}
 
         {!deleted && (

@@ -12,6 +12,7 @@ export const keys = {
   profile: (username: string, userId?: string) => ['profile', username, userId ?? 'anon'] as const,
   userThreads: (username: string, type: 'posts' | 'comments', userId?: string) =>
     ['userThreads', username, type, userId ?? 'anon'] as const,
-  userSearch: (q: string, userId?: string) => ['search', 'users', q, userId ?? 'anon'] as const,
-  communitySearch: (q: string, userId?: string) => ['search', 'communities', q, userId ?? 'anon'] as const,
+  userSearch: (q: string, limit: number, userId?: string) => ['search', 'users', q, limit, userId ?? 'anon'] as const,
+  communitySearch: (q: string, limit: number, userId?: string) =>
+    ['search', 'communities', q, limit, userId ?? 'anon'] as const,
 };

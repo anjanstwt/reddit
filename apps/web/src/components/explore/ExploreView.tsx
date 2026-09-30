@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Block from '@/components/utility/Block';
 import CommunityRow from '@/components/utility/CommunityRow';
+import SeparatedList from '@/components/utility/SeparatedList';
 import UserRow from '@/components/utility/UserRow';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useCommunitySearch, useUserSearch } from '@/hooks/useSearch';
@@ -72,11 +73,11 @@ function CommunityResults({ q }: { q: string }) {
   if (data.length === 0) return <Empty text={q ? `No communities match “${q}”.` : 'No communities yet.'} />;
 
   return (
-    <div className="flex flex-col">
+    <SeparatedList>
       {data.map((community) => (
         <CommunityRow key={community.id} community={community} />
       ))}
-    </div>
+    </SeparatedList>
   );
 }
 
@@ -87,21 +88,21 @@ function PeopleResults({ q }: { q: string }) {
   if (data.length === 0) return <Empty text={q ? `No one matches “${q}”.` : 'No people yet.'} />;
 
   return (
-    <div className="flex flex-col">
+    <SeparatedList>
       {data.map((profile) => (
         <UserRow key={profile.id} profile={profile} />
       ))}
-    </div>
+    </SeparatedList>
   );
 }
 
 function ResultsSkeleton() {
   return (
-    <div className="flex flex-col gap-2">
+    <SeparatedList>
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className="h-16 animate-pulse rounded-lg bg-white/5" />
+        <div key={i} className="h-16 animate-pulse bg-white/5" />
       ))}
-    </div>
+    </SeparatedList>
   );
 }
 

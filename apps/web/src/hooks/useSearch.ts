@@ -6,24 +6,29 @@ import { useAccessToken } from '@/hooks/useAccessToken';
 import { api } from '@/lib/server/api';
 import { keys } from '@/lib/server/keys';
 
-export function useUserSearch(q: string) {
+interface SearchOptions {
+  limit?: number;
+  enabled?: boolean;
+}
+
+export function useUserSearch(q: string, { limit = 50, enabled = true }: SearchOptions = {}) {
   const { token, userId, ready } = useAccessToken();
 
   return useQuery({
-    queryKey: keys.userSearch(q, userId),
-    queryFn: () => api.users.search({ q, limit: 50 }, token),
-    enabled: ready,
+    queryKey: keys.userSearch(q, limit, userId),
+    queryFn: () => api.users.search({ q, limit }, token),
+    enabled: ready && enabled,
     placeholderData: keepPreviousData,
   });
 }
 
-export function useCommunitySearch(q: string) {
+export function useCommunitySearch(q: string, { limit = 50, enabled = true }: SearchOptions = {}) {
   const { token, userId, ready } = useAccessToken();
 
   return useQuery({
-    queryKey: keys.communitySearch(q, userId),
-    queryFn: () => api.communities.list({ q, limit: 50 }, token),
-    enabled: ready,
+    queryKey: keys.communitySearch(q, limit, userId),
+    queryFn: () => api.communities.list({ q, limit }, token),
+    enabled: ready && enabled,
     placeholderData: keepPreviousData,
   });
 }

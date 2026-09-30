@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import PostCard from '@/components/utility/PostCard';
 import PostSkeleton from '@/components/utility/PostSkeleton';
+import SeparatedList from '@/components/utility/SeparatedList';
 import { type FeedSource, useFeed } from '@/hooks/useFeed';
 import type { PostSort } from '@/lib/server/types';
 
@@ -39,7 +40,13 @@ export default function Feed({ source, defaultSort = 'new' }: FeedProps) {
         ))}
       </div>
 
-      {feed.isPending && Array.from({ length: 3 }, (_, i) => <PostSkeleton key={i} />)}
+      {feed.isPending && (
+        <SeparatedList>
+          {Array.from({ length: 3 }, (_, i) => (
+            <PostSkeleton key={i} />
+          ))}
+        </SeparatedList>
+      )}
 
       {feed.isError && (
         <div className="flex flex-col items-center gap-3 py-16 text-sm text-steel">
@@ -59,11 +66,11 @@ export default function Feed({ source, defaultSort = 'new' }: FeedProps) {
         </div>
       )}
 
-      <div className="flex flex-col divide-y divide-white/10">
+      <SeparatedList>
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
-      </div>
+      </SeparatedList>
 
       {feed.hasNextPage && (
         <div className="flex justify-center py-6">

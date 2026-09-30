@@ -7,7 +7,7 @@ import type { Community } from '@/lib/server/types';
 
 export default function CommunityRow({ community }: { community: Community }) {
   return (
-    <article className="relative flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-white/[0.03]">
+    <article className="relative flex items-center gap-3 px-3 py-3 transition-colors hover:bg-white/[0.03]">
       <Avatar src={community.iconUrl} name={community.name} size={40} />
       <div className="min-w-0 flex-1">
         <Link href={`/r/${community.name}`} className="font-semibold text-neutral-100 after:absolute after:inset-0">

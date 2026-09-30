@@ -18,16 +18,15 @@ export function plainText(doc: TiptapNode | null, max = 300) {
   return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
 }
 
-export function firstMediaId(doc: TiptapNode | null): string | undefined {
-  if (!doc) return undefined;
-  if ((doc.type === 'image' || doc.type === 'video') && typeof doc.attrs?.mediaId === 'string') {
-    return doc.attrs.mediaId;
-  }
-  for (const child of doc.content ?? []) {
-    const id = firstMediaId(child);
-    if (id) return id;
-  }
-  return undefined;
+export function mediaIds(doc: TiptapNode | null): string[] {
+  const ids: string[] = [];
+  const walk = (node: TiptapNode) => {
+    const id = node.attrs?.mediaId;
+    if ((node.type === 'image' || node.type === 'video') && typeof id === 'string' && !ids.includes(id)) ids.push(id);
+    node.content?.forEach(walk);
+  };
+  if (doc) walk(doc);
+  return ids;
 }
 
 export function textToDoc(text: string): TiptapNode | undefined {

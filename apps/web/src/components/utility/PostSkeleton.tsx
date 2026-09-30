@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 
 export default function PostSkeleton({ className }: { className?: string }) {
   return (
-    <article className={cn('flex animate-pulse flex-col gap-3 border-b border-white/10 px-4 py-4', className)}>
+    <article className={cn('flex animate-pulse flex-col gap-3 px-4 py-4', className)}>
       <div className="flex items-center gap-2">
         <div className="size-6 rounded-full bg-white/10" />
         <div className="h-3 w-32 rounded bg-white/10" />
