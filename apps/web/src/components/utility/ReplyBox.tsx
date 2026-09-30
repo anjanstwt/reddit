@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import Block from '@/components/utility/Block';
 import SignInPrompt from '@/components/utility/SignInPrompt';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { useReply } from '@/hooks/useThread';
@@ -36,15 +37,16 @@ export default function ReplyBox({ postId, parentId, placeholder = 'Add a commen
     );
 
   return (
-    <div className="flex flex-col gap-2">
+    <Block className="w-full transition-colors focus-within:bg-[#1a1a1a] shadow-md border border-[#292929] ">
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
         rows={3}
+        className="min-h-20 resize-none rounded-none bg-transparent px-4 pt-3 pb-1 hover:bg-transparent focus-visible:bg-transparent"
       />
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex w-full items-center justify-end gap-2 px-3 pb-3">
         {reply.isError && <p className="mr-auto px-1 text-xs text-red-400">{errorMessage(reply.error)}</p>}
         {onDone && (
           <Button variant="ghost" size="sm" onClick={onDone}>
@@ -55,6 +57,6 @@ export default function ReplyBox({ postId, parentId, placeholder = 'Add a commen
           {reply.isPending ? 'Posting…' : 'Comment'}
         </Button>
       </div>
-    </div>
+    </Block>
   );
 }

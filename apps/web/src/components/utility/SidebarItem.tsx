@@ -4,7 +4,6 @@ import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
 import Avatar from '@/components/utility/Avatar';
 import { cn } from '@/lib/utils';
 
@@ -17,27 +16,34 @@ interface SidebarItemProps {
 }
 
 export default function SidebarItem({ href, onClick, label, icon: Icon, avatar }: SidebarItemProps) {
-  const active = usePathname() === href;
+  const pathname = usePathname();
+  const active = !!href && pathname === href;
+  const className = cn(
+    'group flex w-full cursor-pointer items-center gap-1 rounded-[5px] py-1 pr-2.5 pl-2 text-left font-medium tracking-wider',
+    'transition-colors outline-none focus-visible:ring-1 focus-visible:ring-white/30',
+    active ? 'bg-[#222222] text-white/90' : 'text-white/65 hover:bg-[#1c1c1c] hover:text-neutral-100',
+  );
 
   const content = (
     <>
-      {Icon && <Icon size={20} strokeWidth={1.75} />}
-      {avatar && <Avatar src={avatar.src} name={avatar.name} size={28} />}
-      <span className="truncate">{label}</span>
+      <span className="flex size-5 shrink-0 items-center justify-center">
+        {Icon && <Icon size={16} strokeWidth={1.75} aria-hidden />}
+        {avatar && <Avatar src={avatar.src} name={avatar.name} size={16} />}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-[12.5px]">{label}</span>
     </>
   );
 
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
   return (
-    <Button
-      asChild={!!href}
-      variant="ghost"
-      onClick={onClick}
-      className={cn(
-        'h-11 w-full justify-start gap-3 rounded-lg px-4 text-[15px] font-normal',
-        active ? 'bg-white/10' : 'hover:bg-white/5',
-      )}
-    >
-      {href ? <Link href={href}>{content}</Link> : content}
-    </Button>
+    <button type="button" onClick={onClick} className={className}>
+      {content}
+    </button>
   );
 }
